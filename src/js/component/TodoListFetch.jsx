@@ -28,6 +28,13 @@ export const TodoListFetch = () => {
         setTodos(data.todos)
     }
 
+    const checkUserExists = async () => {
+        const uri = `${host}/users/${user}`;
+        const response = await fetch(uri, { method: 'GET' });
+
+        return response.ok; 
+    }
+
     const addTodos = async () => {
         const dataToSend = {
             label: newTask,
@@ -46,7 +53,6 @@ export const TodoListFetch = () => {
             console.log('Error', response.status, response.statusText);
             return
         }
-        const data = await response.json()
         getTodos()
     }
 
@@ -68,7 +74,6 @@ export const TodoListFetch = () => {
             console.log('Error', response.status, response.statusText);
             return
         }
-        const data = await response.json()
         await getTodos()
         handleCancel()
     }
@@ -84,7 +89,6 @@ export const TodoListFetch = () => {
         const response = await fetch(uri, options)
         if (!response.ok) {
             console.log('Error', response.status, response.statusText);
-
             return
         }
         if (editTask === id) {
@@ -93,12 +97,23 @@ export const TodoListFetch = () => {
         setTodos((prevTodos) => prevTodos.filter((task) => task.id !== id));
     }
 
-    const handleSubmitAdd = (event) => {
-        event.preventDefault()
-        addTodos()
-        setNewTask('')
+    const handleSubmitAdd = async (event) => {
+        event.preventDefault();
+    
+        const userExists = await checkUserExists();
+        if (!userExists) {
+            alert("El usuario no existe. No se pueden añadir tareas.");
+            return;
+        }
+    
+        if (newTask.trim() === "") {
+            alert("No se puede añadir una tarea vacía.");
+            return;
+        }
+    
+        addTodos();
+        setNewTask('');
     }
-
     const handleEditClick = (task) => {
         setEditForm(true)
         setEditTask(task.id)
